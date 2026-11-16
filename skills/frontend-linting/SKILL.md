@@ -31,9 +31,12 @@ description: Standards and guidelines for frontend static analysis, linting, typ
 - **Formatting Consistency**: Enforce consistent indentation, quotes, semicolons, trailing commas, line endings, and other formatting decisions through the selected formatter.
 - **Zero-Warning Policy**:
   - Aim for zero lint warnings in new or actively maintained code.
-  - Use `--max-warnings=0` in CI when the project has reached a clean baseline.
+  - For ESLint, use `--max-warnings=0` in the lint command used by CI when the project has reached a clean baseline; this threshold is a CLI option, not a flat-config setting.
   - For legacy repositories, track existing warnings and prevent new violations while progressively reducing the baseline.
-- **Autofix**: Use ESLint autofix and formatter commands where safe. Review transformations that may change behavior or application semantics.
+- **Autofix**: Use linter autofix and formatter commands where safe. Review transformations that may change behavior or application semantics. Biome's `--write` applies safe lint fixes; unsafe fixes require `--unsafe`.
+- **Project Commands**:
+  - `pnpm lint`: Lint source files.
+  - `pnpm lint:write`: Apply safe lint fixes to source files.
 - **Rule Documentation**: Document custom rules, non-obvious overrides, and important exceptions.
 
 ## 3. TypeScript & Type-Safety Rules
