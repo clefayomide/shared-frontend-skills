@@ -20,7 +20,7 @@ async function getAvailableSkills(): Promise<string[]> {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-  } catch (error) {
+  } catch {
     console.error(chalk.red('\n✖ Failed to locate bundled skills directory.'));
     process.exit(1);
   }
