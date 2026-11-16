@@ -4,9 +4,17 @@
   "description": "A collection of shared frontend skills, containing architectural & coding best practices.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "shared-frontend-skills": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skills"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "pnpm run build"
   },
   "keywords": [],
   "author": "",
@@ -23,5 +31,11 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "chalk": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
