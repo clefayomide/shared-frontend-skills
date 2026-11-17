@@ -1,5 +1,5 @@
 {
-  "name": "@victorOlorunfemi/shared-frontend-skills",
+  "name": "@victorolorunfemi/shared-frontend-skills",
   "version": "1.0.0",
   "description": "A collection of shared frontend skills, containing architectural & coding best practices.",
   "main": "dist/index.js",
