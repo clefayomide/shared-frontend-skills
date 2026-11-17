@@ -19,7 +19,7 @@
     "build": "tsc",
     "lint": "biome lint src",
     "lint:write": "biome lint src --write",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run lint && pnpm run build"
   },
   "keywords": [],
   "author": "",
