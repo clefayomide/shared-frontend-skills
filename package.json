@@ -2,6 +2,10 @@
   "name": "@victorolorunfemi/shared-frontend-skills",
   "version": "1.0.1",
   "description": "A collection of shared frontend skills, containing architectural & coding best practices.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clefayomide/shared-frontend-skills.git"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -35,6 +39,7 @@
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "^2.6.8",
+    "@changesets/cli": "^3.0.3",
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2"
   },

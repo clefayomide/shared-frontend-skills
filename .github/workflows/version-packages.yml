@@ -1,0 +1,68 @@
+name: Version Packages
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changesets-version-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Create or update version PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out master
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up pnpm
+        # pnpm/action-setup v6.1.1
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115
+        with:
+          version: 12.18.0
+          run_install: false
+
+      - name: Set up Node.js
+        # actions/setup-node v7.1.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Select Changesets mode
+        id: changesets
+        # changesets/action v2.1.2
+        uses: changesets/action/select-mode@ae32849d5ba541f9ae29e40e22a623bc13562f51
+
+      - name: Create GitHub App token
+        id: app-token
+        if: steps.changesets.outputs.mode == 'version'
+        # actions/create-github-app-token v3.4.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc
+        with:
+          client-id: ${{ secrets.CHANGESETS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGESETS_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Create or update Version Packages PR
+        if: steps.changesets.outputs.mode == 'version'
+        # changesets/action v2.1.2
+        uses: changesets/action/version@ae32849d5ba541f9ae29e40e22a623bc13562f51
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: pnpm changeset version
+          pr-base-branch: master
