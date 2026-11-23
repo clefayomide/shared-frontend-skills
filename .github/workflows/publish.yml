@@ -56,6 +56,6 @@ jobs:
         # changesets/action v2.1.2
         uses: changesets/action/select-mode@ae32849d5ba541f9ae29e40e22a623bc13562f51
 
-      - name: Publish package
+      - name: Stage publish package
         if: steps.changesets.outputs.mode == 'publish'
-        run: pnpm publish
+        run: pnpm stage publish
