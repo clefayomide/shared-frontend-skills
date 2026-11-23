@@ -1,0 +1,61 @@
+name: Publish Package
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to npm
+    if: >-
+      github.event.pull_request.merged == true
+      && github.event.pull_request.base.ref == 'master'
+      && github.event.pull_request.head.ref == 'changeset-release/master'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.title == 'Version Packages'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out merged version commit
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Set up Node.js
+        # actions/setup-node v7.1.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Set up pnpm
+        # pnpm/action-setup v6.1.1
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115
+        with:
+          version: 12.18.0
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Select Changesets mode
+        id: changesets
+        # changesets/action v2.1.2
+        uses: changesets/action/select-mode@ae32849d5ba541f9ae29e40e22a623bc13562f51
+
+      - name: Publish package
+        if: steps.changesets.outputs.mode == 'publish'
+        run: pnpm publish

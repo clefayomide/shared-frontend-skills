@@ -1,0 +1,119 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate and lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        # pnpm/action-setup v6.1.1
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115
+        with:
+          version: 12.18.0
+          run_install: false
+
+      - name: Set up Node.js
+        # actions/setup-node v7.1.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Validate Changeset
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { existsSync } from 'node:fs';
+          import { isDeepStrictEqual } from 'node:util';
+
+          const baseSha = process.env.BASE_SHA;
+          const headSha = process.env.HEAD_SHA;
+          const changedFiles = execFileSync(
+            'git',
+            ['diff', '--name-only', baseSha, headSha],
+            { encoding: 'utf8' },
+          )
+            .split('\n')
+            .filter(Boolean);
+
+          const baseManifest = JSON.parse(
+            execFileSync('git', ['show', `${baseSha}:package.json`], { encoding: 'utf8' }),
+          );
+          const headManifest = JSON.parse(
+            execFileSync('git', ['show', `${headSha}:package.json`], { encoding: 'utf8' }),
+          );
+          const releaseFields = [
+            'name',
+            'main',
+            'module',
+            'types',
+            'typings',
+            'exports',
+            'bin',
+            'files',
+            'dependencies',
+            'optionalDependencies',
+            'peerDependencies',
+            'engines',
+            'license',
+            'publishConfig',
+          ];
+          const manifestNeedsRelease = changedFiles.includes('package.json')
+            && releaseFields.some((field) => !isDeepStrictEqual(baseManifest[field], headManifest[field]));
+          const packageFilesChanged = changedFiles.some(
+            (file) => file.startsWith('src/') || file.startsWith('skills/'),
+          );
+
+          if (!packageFilesChanged && !manifestNeedsRelease) {
+            console.log('No release-requiring package changes; a Changeset is not needed.');
+            process.exit(0);
+          }
+
+          const changesets = changedFiles.filter(
+            (file) => file.startsWith('.changeset/')
+              && file.endsWith('.md')
+              && file !== '.changeset/README.md'
+              && existsSync(file),
+          );
+
+          if (changesets.length === 0) {
+            console.error(
+              'Package changes require a Changeset. Run `pnpm changeset` and commit the generated file.',
+            );
+            process.exit(1);
+          }
+
+          execFileSync('pnpm', ['changeset', 'status', '--since', baseSha], { stdio: 'inherit' });
+          NODE
