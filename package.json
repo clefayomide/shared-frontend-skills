@@ -1,6 +1,6 @@
 {
   "name": "@victorolorunfemi/shared-frontend-skills",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A collection of shared frontend skills, containing architectural & coding best practices.",
   "repository": {
     "type": "git",

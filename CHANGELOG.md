@@ -1,5 +1,11 @@
 # @victorolorunfemi/shared-frontend-skills
 
+## 1.1.0
+
+### Minor Changes
+
+- 05bae76: added git-commit skill for conventional commit messages
+
 ## 1.0.2
 
 ### Patch Changes
